@@ -1,8 +1,9 @@
 import sys
+import io
 import ollama
 import mistune
-from PyQt5.QtCore import Qt, pyqtSignal, QObject, QThread, QTimer, QCoreApplication
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QPushButton
+from PyQt5.QtCore import Qt, pyqtSignal, QThread, QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit
 
 class MarkdownTextEdit(QTextEdit):
     def setMarkdown(self, markdown_text):
@@ -11,6 +12,7 @@ class MarkdownTextEdit(QTextEdit):
 
 class LlamaWorker(QThread):
     llama_finished = pyqtSignal(str)
+    llama_ended = pyqtSignal(str)
 
     def __init__(self, conversation):
         super().__init__()
@@ -28,6 +30,7 @@ class LlamaWorker(QThread):
             result_text += chunk["message"]["content"]
             self.llama_finished.emit(result_text)
         self.conservation.append({"role": "assistant", "content": result_text})
+        self.llama_ended.emit(result_text)
 
 class InputTextEdit(QTextEdit):
     enterPressed = pyqtSignal()
@@ -50,6 +53,8 @@ class ChatApp(QWidget):
 
         self.initUI()
         self.conversation = []
+        self.f5_pressed = False
+        self.f6_pressed = False
 
     def initUI(self):
         # Set window properties
@@ -137,6 +142,7 @@ class ChatApp(QWidget):
     def send_llama(self):
             llama_worker = LlamaWorker(self.conversation)
             llama_worker.llama_finished.connect(self.llama_finished)
+            llama_worker.llama_ended.connect(self.llama_ended)
             llama_worker.setParent(self)
 
             llama_worker.start()
@@ -148,6 +154,23 @@ class ChatApp(QWidget):
         self.chat_box.setMarkdown(result_text)
         scroll_bar = self.chat_box.verticalScrollBar()
         scroll_bar.setValue(scroll_bar.maximum())
+
+    def llama_ended(self, output_text):
+        if "```python\n" in output_text:
+            self.chat_box.append("Python code detected\n")
+            captured_output = io.StringIO()
+            sys.stdout = captured_output
+            python_code = output_text.split('```python\n')[1].split("```")[0]
+            exec(python_code)
+            sys.stdout = sys.__stdout__
+            output_result = captured_output.getvalue()
+            self.chat_box.append("Code Output: " + output_result)
+
+    def set_f5(self):
+        self.f5_pressed = True
+
+    def set_f6(self):
+        self.f6_pressed = True
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
