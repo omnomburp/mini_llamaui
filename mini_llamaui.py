@@ -35,26 +35,26 @@ class LlamaWorker(QThread):
 class InputTextEdit(QTextEdit):
     enterPressed = pyqtSignal()
     escPressed = pyqtSignal()
+    runPython = pyqtSignal()
 
     def keyPressEvent(self, e):
         if e.key() in (Qt.Key_Enter, Qt.Key_Return):
-            self.enterPressed.emit()
+            if self.toPlainText() == "run":
+                self.setPlainText("")
+                self.runPython.emit()
+            else:
+                self.enterPressed.emit()
         elif e.key() == Qt.Key_Escape:
             self.escPressed.emit()
         else:
             super().keyPressEvent(e)
 
-    def emitEnterPressed(self):
-        self.enterPressed.emit()
-
 class ChatApp(QWidget):
     def __init__(self):
         super().__init__()
-
         self.initUI()
         self.conversation = []
-        self.f5_pressed = False
-        self.f6_pressed = False
+        self.python_code = ""
 
     def initUI(self):
         # Set window properties
@@ -123,6 +123,7 @@ class ChatApp(QWidget):
 
         self.message_input.enterPressed.connect(self.send_message)
         self.message_input.escPressed.connect(self.minimize_window)
+        self.message_input.runPython.connect(self.run_python)
         QTimer.singleShot(0, self.set_message_input_focus)
 
     def set_message_input_focus(self):
@@ -135,8 +136,8 @@ class ChatApp(QWidget):
         # Get message from input
         message = self.message_input.toPlainText()
         self.conversation.append({"role": "user", "content": message})
-
         self.message_input.clear()
+        self.message_input.setDisabled(True)
         self.send_llama()
 
     def send_llama(self):
@@ -157,16 +158,20 @@ class ChatApp(QWidget):
 
     def llama_ended(self, output_text):
         # should probably add user confirmation
+        self.message_input.setDisabled(False)
         if "```python\n" in output_text:
-            self.chat_box.append("Python code detected")
-            captured_output = io.StringIO()
-            sys.stdout = captured_output
+            self.chat_box.append("Python code detected") 
             python_code = output_text.split('```python\n')[1].split("```")[0]
-            exec(python_code)
-            sys.stdout = sys.__stdout__
-            output_result = captured_output.getvalue()
-            self.chat_box.append("Code Output: " + output_result)
+            self.python_code = python_code
 
+    def run_python(self):
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        exec(self.python_code)
+        sys.stdout = sys.__stdout__
+        output_result = captured_output.getvalue()
+        self.chat_box.append("Code Output:\n" + output_result)
+            
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     chat_app = ChatApp()
