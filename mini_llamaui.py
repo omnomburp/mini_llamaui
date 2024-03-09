@@ -156,8 +156,9 @@ class ChatApp(QWidget):
         scroll_bar.setValue(scroll_bar.maximum())
 
     def llama_ended(self, output_text):
+        # should probably add user confirmation
         if "```python\n" in output_text:
-            self.chat_box.append("Python code detected\n")
+            self.chat_box.append("Python code detected")
             captured_output = io.StringIO()
             sys.stdout = captured_output
             python_code = output_text.split('```python\n')[1].split("```")[0]
@@ -165,12 +166,6 @@ class ChatApp(QWidget):
             sys.stdout = sys.__stdout__
             output_result = captured_output.getvalue()
             self.chat_box.append("Code Output: " + output_result)
-
-    def set_f5(self):
-        self.f5_pressed = True
-
-    def set_f6(self):
-        self.f6_pressed = True
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
