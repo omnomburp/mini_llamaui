@@ -199,6 +199,7 @@ class ChatApp(QWidget):
     def llama_ended(self, output_text):
         # should probably add user confirmation
         self.message_input.setDisabled(False)
+        QTimer.singleShot(0, self.set_message_input_focus)
         if "```python\n" in output_text:
             chat_box = self.create_markdown_widget()
             self.chat_layout.addWidget(chat_box)
@@ -207,6 +208,10 @@ class ChatApp(QWidget):
             self.python_code = python_code
 
     def run_python(self):
+        chat_box = self.create_markdown_widget()
+        chat_box.setStyleSheet("color: #9370DB; font-size: 16px;")
+        self.chat_layout.addWidget(chat_box)
+        chat_box.setMarkdown("run")
         captured_output = io.StringIO()
         sys.stdout = captured_output
         exec(self.python_code)
@@ -215,6 +220,7 @@ class ChatApp(QWidget):
         chat_box = self.create_markdown_widget()
         self.chat_layout.addWidget(chat_box)
         chat_box.setMarkdown("Code Output:\n" + output_result)
+        QTimer.singleShot(0, self.set_message_input_focus)
             
 if __name__ == '__main__':
     app = QApplication(sys.argv)
