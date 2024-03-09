@@ -12,15 +12,15 @@ class MarkdownTextEdit(QTextEdit):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.textChanged.connect(self.adjustHeight)
 
     def setMarkdown(self, markdown_text):
         html_text = mistune.markdown(markdown_text)
         self.setHtml(html_text)
+        QTimer.singleShot(0, self.adjustHeight)
 
     def adjustHeight(self):
         # Get the document size and set the height accordingly
-        new_height = self.document().size().height() + 35  # Add some padding
+        new_height = self.document().size().height() + 10  # Add some padding
         self.setMinimumHeight(math.ceil(new_height))
         self.setMaximumHeight(math.ceil(new_height))
 
@@ -163,7 +163,7 @@ class ChatApp(QWidget):
         chat_box.setStyleSheet("background-color: black; color: white; font-size: 16px;")
         chat_box.setFontPointSize(16)
         chat_box.setReadOnly(True)
-        chat_box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        chat_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         chat_box.setContentsMargins(3, 5, 3, 5)  # Adjust these values as needed
         return chat_box
 
@@ -202,7 +202,7 @@ class ChatApp(QWidget):
         if "```python\n" in output_text:
             chat_box = self.create_markdown_widget()
             self.chat_layout.addWidget(chat_box)
-            chat_box.setMarkdown("Python code detected, type run to run the code\n")
+            chat_box.setMarkdown("Python code detected, type run to run the code")
             python_code = output_text.split('```python\n')[1].split("```")[0]
             self.python_code = python_code
 
@@ -214,7 +214,7 @@ class ChatApp(QWidget):
         output_result = captured_output.getvalue()
         chat_box = self.create_markdown_widget()
         self.chat_layout.addWidget(chat_box)
-        chat_box.setMarkdown("Code Output:\n" + output_result + "\n")
+        chat_box.setMarkdown("Code Output:\n" + output_result)
             
 if __name__ == '__main__':
     app = QApplication(sys.argv)
