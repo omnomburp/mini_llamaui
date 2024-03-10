@@ -160,9 +160,8 @@ class ChatApp(QWidget):
     def create_markdown_widget(self) -> MarkdownTextEdit:
         # Create UI elements
         chat_box = MarkdownTextEdit()
-        chat_box.setStyleSheet("background-color: black; color: white; font-size: 16px;")
-        chat_box.setFontPointSize(16)
         chat_box.setReadOnly(True)
+        chat_box.setStyleSheet("background-color: black; color: white; font-size: 16px;")
         chat_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         chat_box.setContentsMargins(3, 5, 3, 5)  # Adjust these values as needed
         return chat_box
@@ -171,7 +170,7 @@ class ChatApp(QWidget):
         # Get message from input
         message = self.message_input.toPlainText()
         chat_box = self.create_markdown_widget()
-        chat_box.setStyleSheet("color: #9370DB; font-size: 16px;")
+        chat_box.setStyleSheet("color: #77DD77; font-size: 16px;")
         self.chat_layout.addWidget(chat_box)
         chat_box.setMarkdown(message)
         self.conversation.append({"role": "user", "content": message})
@@ -181,7 +180,6 @@ class ChatApp(QWidget):
 
     def send_llama(self):
             chat_box = self.create_markdown_widget()
-            # append to the new vlayout
             self.chat_layout.addWidget(chat_box)
             llama_worker = LlamaWorker(self.conversation, chat_box)
             llama_worker.llama_finished.connect(self.llama_finished)
@@ -209,7 +207,7 @@ class ChatApp(QWidget):
 
     def run_python(self):
         chat_box = self.create_markdown_widget()
-        chat_box.setStyleSheet("color: #9370DB; font-size: 16px;")
+        chat_box.setStyleSheet("color: #77DD77; font-size: 16px;")
         self.chat_layout.addWidget(chat_box)
         chat_box.setMarkdown("run")
         captured_output = io.StringIO()

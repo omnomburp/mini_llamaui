@@ -10,3 +10,5 @@ Just run `python mini_llammaui.py` and the window will show up.
 [ollama](https://github.com/ollama/ollama)
 
 `pip install pyqt5`
+
+`pip install mistune`
